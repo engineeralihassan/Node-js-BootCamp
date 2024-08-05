@@ -1,6 +1,7 @@
  const fs= require('fs');
  let http= require('http');
  const url = require('url');
+ let updateTemplate = require('./starter/modules/replaceTemplate')
  let overViewTemplate= fs.readFileSync('./starter/templates/template-overview.html','utf-8');
  let productTemplate= fs.readFileSync('./starter/templates/template-product.html','utf-8');
  let cardTemplate= fs.readFileSync('./starter/templates/template-card.html','utf-8');
@@ -67,56 +68,25 @@
 
 // ___________________________________ START CREATING A SIMPLE API ____________________//
 
- let updateTemplate= (temp, product) => {
-    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
-    output = output.replace(/{%IMAGE%}/g, product.image);
-    output = output.replace(/{%PRICE%}/g, product.price);
-    output = output.replace(/{%FROM%}/g, product.from);
-    output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
-    output = output.replace(/{%QUANTITY%}/g, product.quantity);
-    output = output.replace(/{%DESCRIPTION%}/g, product.description);
-    output = output.replace(/{%ID%}/g, product.id);
-    
-    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
-    return output;
-  }
 
+ const data= JSON.parse( fs.readFileSync(`./starter/dev-data/data.json`,'utf-8'));
 const server=http.createServer((req,res)=>{
-    let pathName= req.url;
-    if(pathName === '/' || pathName === '/overview'){
+    let {pathname,query}= url.parse(req.url,true);
+    if(pathname === '/' || pathname === '/overview'){
         res.writeHead(200,{
             'Content-type':'text/html',
-        })
-        fs.readFile(`./starter/dev-data/data.json`,'utf-8',(error,responce)=>{
-            if(error){
-                return res.end("Error occurs");
-            }
-            console.log(responce);
-            let data = JSON.parse(responce);
+        });
             const cardsHtml = data.map(el => updateTemplate(cardTemplate, el)).join('');
             const output = overViewTemplate.replace('{%PRODUCT_CARDS%}', cardsHtml);
             res.end(output);
-         
-           
-        })
-     
             }
-            else if(pathName === '/product'){
-                fs.readFile(`./starter/dev-data/data.json`,'utf-8',(error,responce)=>{
-                    if(error){
-                        return res.end("Error occurs");
-                    }
-                    console.log(responce);
-                    let data = JSON.parse(responce);
-                    res.writeHead(200,{
-                        'Content-type':'text/html',
-                    })
-                    const cardsHtml = data.map(el => updateTemplate(cardTemplate, el)).join('');
-                    const output = overViewTemplate.replace('{%PRODUCT_CARDS%}', cardsHtml);
-                    res.end(output);
-                 
-                   
-                })
+            else if(pathname === '/product'){
+                res.writeHead(200, {
+                    'Content-type': 'text/html'
+                  });
+                  const product = data[query.id];
+                  const output = updateTemplate(productTemplate, product);
+                  res.end(output);
                
             }
             else{
@@ -125,10 +95,7 @@ const server=http.createServer((req,res)=>{
                    'my-own-header':'example of custome headers',
                 })
                 res.end("Page Note found Please try with correct URL");
-            }
-
-
-    
+            }   
 });
 server.listen(8000,'127.0.0.1',()=>{
     console.log("Server is lisning on the demand");

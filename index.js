@@ -38,31 +38,63 @@
 
 // ___________________________________ CREATING A WEB SERVER FROM SRATCH ____________________//
 
+// const server=http.createServer((req,res)=>{
+//     console.log(req.url);
+//     let pathName=req.url;
+//     if(pathName === '/' || pathName === '/overview'){
+//         res.end("This the responce for the overview Page");
+//     }
+//     else if(pathName === '/product'){
+//         res.end("This is the responce for the Product Page");
+//     }
+//     else{
+//         res.writeHead(404,{
+//            'content-type' : 'text/html',
+//            'my-own-header':'example of custome headers',
+//         })
+//         res.end("Page Note found Please try with correct URL");
+//     }
+    
+// });
+// server.listen(8000,'127.0.0.1',()=>{
+//     console.log("Server is lisning on the demand");
+// });
+
+
+// ___________________________________ START CREATING A SIMPLE API ____________________//
 const server=http.createServer((req,res)=>{
-    console.log(req.url);
-    let pathName=req.url;
+    let pathName= req.url;
     if(pathName === '/' || pathName === '/overview'){
-        res.end("This the responce for the overview Page");
-    }
-    else if(pathName === '/product'){
-        res.end("This is the responce for the Product Page");
-    }
-    else{
-        res.writeHead(404,{
-           'content-type' : 'text/html',
-           'my-own-header':'example of custome headers',
-        })
-        res.end("Page Note found Please try with correct URL");
-    }
+                res.end("This the responce for the overview Page");
+            }
+            else if(pathName === '/product'){
+                fs.readFile(`./starter/dev-data/data.json`,'utf-8',(error,responce)=>{
+                    if(error){
+                        return res.end("Error occurs");
+                    }
+                    console.log(responce);
+                    let data = JSON.parse(responce);
+                    res.writeHead(200,{
+                        'Content-type':'application/json',
+                    })
+                    res.end(responce);
+                })
+               
+            }
+            else{
+                res.writeHead(404,{
+                   'content-type' : 'text/html',
+                   'my-own-header':'example of custome headers',
+                })
+                res.end("Page Note found Please try with correct URL");
+            }
+
+
     
 });
 server.listen(8000,'127.0.0.1',()=>{
     console.log("Server is lisning on the demand");
 });
-
-
-// ___________________________________ CREATING A WEB SERVER FROM SRATCH ____________________//
-
 
 
 

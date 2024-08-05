@@ -1,6 +1,10 @@
  const fs= require('fs');
  let http= require('http');
  const url = require('url');
+ let overViewTemplate= fs.readFileSync('./starter/templates/template-overview.html','utf-8');
+ let productTemplate= fs.readFileSync('./starter/templates/template-product.html','utf-8');
+ let cardTemplate= fs.readFileSync('./starter/templates/template-card.html','utf-8');
+
 // let hello = "Hello world its an first node script";
 // let modules = "Hello this is modules intro lecture";
 
@@ -62,10 +66,40 @@
 
 
 // ___________________________________ START CREATING A SIMPLE API ____________________//
+
+ let updateTemplate= (temp, product) => {
+    let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+    output = output.replace(/{%IMAGE%}/g, product.image);
+    output = output.replace(/{%PRICE%}/g, product.price);
+    output = output.replace(/{%FROM%}/g, product.from);
+    output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
+    output = output.replace(/{%QUANTITY%}/g, product.quantity);
+    output = output.replace(/{%DESCRIPTION%}/g, product.description);
+    output = output.replace(/{%ID%}/g, product.id);
+    
+    if(!product.organic) output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
+    return output;
+  }
+
 const server=http.createServer((req,res)=>{
     let pathName= req.url;
     if(pathName === '/' || pathName === '/overview'){
-                res.end("This the responce for the overview Page");
+        res.writeHead(200,{
+            'Content-type':'text/html',
+        })
+        fs.readFile(`./starter/dev-data/data.json`,'utf-8',(error,responce)=>{
+            if(error){
+                return res.end("Error occurs");
+            }
+            console.log(responce);
+            let data = JSON.parse(responce);
+            const cardsHtml = data.map(el => updateTemplate(cardTemplate, el)).join('');
+            const output = overViewTemplate.replace('{%PRODUCT_CARDS%}', cardsHtml);
+            res.end(output);
+         
+           
+        })
+     
             }
             else if(pathName === '/product'){
                 fs.readFile(`./starter/dev-data/data.json`,'utf-8',(error,responce)=>{
@@ -75,9 +109,13 @@ const server=http.createServer((req,res)=>{
                     console.log(responce);
                     let data = JSON.parse(responce);
                     res.writeHead(200,{
-                        'Content-type':'application/json',
+                        'Content-type':'text/html',
                     })
-                    res.end(responce);
+                    const cardsHtml = data.map(el => updateTemplate(cardTemplate, el)).join('');
+                    const output = overViewTemplate.replace('{%PRODUCT_CARDS%}', cardsHtml);
+                    res.end(output);
+                 
+                   
                 })
                
             }

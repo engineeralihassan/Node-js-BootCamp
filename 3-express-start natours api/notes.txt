@@ -1,0 +1,12 @@
++++++++WHAT IS EXPRESS+++++++
+
+Node.Js Framwork. Express is written in node js. Its Easy our work rather then writing code in core node.js.
+
+
+WHAT IS REST ARCHITECTURE
+
+SEPERATE API INTO LOGICAL RECOURCES
+ 
+RESOURCE-BASED URL'SEPERATE 
+USE HTTP METHODS
+ 

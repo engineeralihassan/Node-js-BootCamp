@@ -316,6 +316,43 @@ const deleteTour = (req, res) => {
   });
 };
 
+// USER HANDLER FUNCTIONS
+
+const getAllUsers=(req, res) => {
+    res.status(500).json({
+        status: 'fail',
+        message: 'Route does not implemented yet',
+      });
+}
+
+const createUser=(req, res) => {
+    res.status(500).json({
+        status: 'fail',
+        message: 'Route does not implemented yet',
+      });
+}
+
+const getUser=(req, res) => {
+    res.status(500).json({
+        status: 'fail',
+        message: 'Route does not implemented yet',
+      });
+}
+
+const updateUser=(req, res) => {
+    res.status(500).json({
+        status: 'fail',
+        message: 'Route does not implemented yet',
+      });
+}
+
+const deleteUser=(req, res) => {
+    res.status(500).json({
+        status: 'fail',
+        message: 'Route does not implemented yet',
+      });
+}
+
 // Define routes
 app.route('/api/v1/tours')
   .get(getAllTours)
@@ -326,7 +363,19 @@ app.route('/api/v1/tours/:id')
   .patch(updateTour)
   .delete(deleteTour);
 
+  // Users Routes
+
+  app.route('/api/v1/users')
+  .get(getAllUsers)
+  .post(createUser);
+
+app.route('/api/v1/users/:id')
+  .get(getUser)
+  .patch(updateUser)
+  .delete(deleteUser);
+
 // Start server
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

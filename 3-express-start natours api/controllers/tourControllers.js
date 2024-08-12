@@ -4,6 +4,18 @@ const fs= require('fs');
 let fileContent = fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf8');
 let tours = JSON.parse(fileContent);
 
+// Middle wares
+
+exports.checkBody= (req,res,next)=>{
+    if(!req.body.name || !req.body.price){
+      return  res.status(400).json({
+            status:'fail',
+            message:'we are missing somethings from prive or name of the tour'
+        })
+    }
+    next();
+};
+
 // ROUTE HANDLERS
 exports.getAllTours = (req, res) => {
     console.log('Fetching all tours');

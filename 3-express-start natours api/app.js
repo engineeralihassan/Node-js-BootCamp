@@ -13,7 +13,9 @@ app.use((req,res,next)=>{
     console.log("Hello from the Middle ware");
     req.isFromMiddleware=true;
     next();
-})
+});
+
+app.use(express.static(`${__dirname}/public`))
 
 
 

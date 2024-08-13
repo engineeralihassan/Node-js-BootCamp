@@ -1,87 +1,24 @@
 const express = require('express');
 const fs = require('fs');
 const Tour = require('../modals/tourModal');
-
-let fileContent = fs.readFileSync(
-  `${__dirname}/../dev-data/data/tours-simple.json`,
-  'utf8'
-);
-let tours = JSON.parse(fileContent);
-
-// Middle wares
-
-// exports.checkBody= (req,res,next)=>{
-//     if(!req.body.name || !req.body.price){
-//       return  res.status(400).json({
-//             status:'fail',
-//             message:'we are missing somethings from prive or name of the tour'
-//         })
-//     }
-//     next();
-// };
+const ApiFeatures = require('../utils/apiFeatures');
 
 // ROUTE HANDLERS
-
-
-exports.aliasTopTours=(req,res,next)=>{
-  console.log("In the top middle ware");
-req.query.limit='5';
-req.query.sort="-ratingsAverage,price";
-req.query.feilds='name,price,ratingsAverage,difficulty,description';
-next();
-}
-
-
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.feilds = 'name,price,ratingsAverage,difficulty,description';
+  next();
+};
 
 exports.getAllTours = async (req, res) => {
   try {
-    //  let allTours = await Tour.find({difficulty:'easy'});
-    // let allTours = await Tour.find({difficulty:'easy'});  // filtering one way in mongoDb
-    // let allTours = await Tour.find().where('difficulty').equals('easy').where('duration').lte(5);
-   let queryObj= {...req.query};
-   excludedFields=['limit','page','feilds','sort'];
-   excludedFields.forEach(element =>  delete queryObj[element]);
-     // 1B) Advanced filtering
-     let queryStr = JSON.stringify(queryObj);
-     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-     console.log(JSON.parse(queryStr));
-    let query = Tour.find(JSON.parse(queryStr));
-
-
-// Sorting 
-
-   if(req.query.sort){
-    let sortBY= req.query.sort.split(',').join(' ');
-    console.log(sortBY);
-    query= query.sort(sortBY);
-   }else{
-    query= query.sort('-createdAt')
-   }
- 
-  //  Feilds Limiting
-
-  if(req.query.feilds){
-    let feilds= req.query.feilds.split(',').join(' ');
-    query= query.select(feilds);
-   }else{
-    query= query.select('-__v')
-   }
-
-  //  Paginations
-
-  const limit= req.query.limit*1 || 5;
-  const page= req.query.page*1 || 1;
-  const skip= (page-1)*limit;
-  query=query.skip(skip).limit(limit);
-
-  if(req.query.page){
-    let numRecords= await Tour.countDocuments();
-    if(skip>numRecords){
-      throw new Error('This page data is not exsist')
-    }
-  }
-
-    let allTours = await query;
+    const features = new ApiFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const allTours = await features.query;
     res.status(200).json({
       status: 'success',
       results: allTours.length,
@@ -119,7 +56,7 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.getTour = async(req, res) => {
+exports.getTour = async (req, res) => {
   try {
     // let tour = await Tour.findOne({_id:req.params.id});
     let tour = await Tour.findById(req.params.id);
@@ -127,7 +64,7 @@ exports.getTour = async(req, res) => {
       status: 'success',
       results: 1,
       data: {
-        tour
+        tour,
       },
     });
   } catch (error) {
@@ -139,10 +76,11 @@ exports.getTour = async(req, res) => {
   }
 };
 
-exports.updateTour = async(req, res) => {
+exports.updateTour = async (req, res) => {
   try {
-    let tour = await Tour.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators
-      :true
+    let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
     });
     res.status(200).json({
       status: 'success',
@@ -155,12 +93,13 @@ exports.updateTour = async(req, res) => {
     res.status(500).json({
       status: 'fail',
       results: 0,
-      message: 'Your body data is not according to the settle validations in db',
+      message:
+        'Your body data is not according to the settle validations in db',
     });
   }
 };
 
-exports.deleteTour = async(req, res) => {
+exports.deleteTour = async (req, res) => {
   try {
     let tour = await Tour.findByIdAndDelete(req.params.id);
     res.status(200).json({

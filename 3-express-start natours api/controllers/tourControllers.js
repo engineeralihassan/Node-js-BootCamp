@@ -28,10 +28,20 @@ exports.getAllTours = async (req, res) => {
     // let allTours = await Tour.find().where('difficulty').equals('easy').where('duration').lte(5);
    let queryObj= {...req.query};
    excludedFields=['limit','page','feilds','sort'];
-   console.log("query objecr real",queryObj);
    excludedFields.forEach(element =>  delete queryObj[element]);
-   console.log("query objecr final",queryObj);
-    let allTours = await Tour.find(queryObj);
+     // 1B) Advanced filtering
+     let queryStr = JSON.stringify(queryObj);
+     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+     console.log(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+   if(req.query.sort){
+    let sortBY= req.query.sort.split(',').join(' ');
+    console.log(sortBY);
+    query= query.sort(sortBY);
+   }else{
+    query= query.sort('-createdAt')
+   }
+    let allTours = await query;
     res.status(200).json({
       status: 'success',
       results: allTours.length,

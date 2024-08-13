@@ -23,7 +23,15 @@ let tours = JSON.parse(fileContent);
 // ROUTE HANDLERS
 exports.getAllTours = async (req, res) => {
   try {
-    let allTours = await Tour.find();
+    //  let allTours = await Tour.find({difficulty:'easy'});
+    // let allTours = await Tour.find({difficulty:'easy'});  // filtering one way in mongoDb
+    // let allTours = await Tour.find().where('difficulty').equals('easy').where('duration').lte(5);
+   let queryObj= {...req.query};
+   excludedFields=['limit','page','feilds','sort'];
+   console.log("query objecr real",queryObj);
+   excludedFields.forEach(element =>  delete queryObj[element]);
+   console.log("query objecr final",queryObj);
+    let allTours = await Tour.find(queryObj);
     res.status(200).json({
       status: 'success',
       results: allTours.length,

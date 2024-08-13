@@ -11,6 +11,7 @@ dotenv.config({
     });
 let toursString= fs.readFileSync(`${__dirname}/tours-simple.json`,'utf-8');
 let tours= JSON.parse(toursString);
+console.log(tours)
 
 // IMPORT DATA INTO DB
 const importData = async () => {

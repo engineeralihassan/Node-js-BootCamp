@@ -12,7 +12,8 @@ next();
 });
 
 
-
+// 5 best tours route alias
+router.route('/top-best-tours').get(tourController.aliasTopTours,tourController.getAllTours);
 
 router.route('/')
   .get(tourController.getAllTours)

@@ -21,6 +21,18 @@ let tours = JSON.parse(fileContent);
 // };
 
 // ROUTE HANDLERS
+
+
+exports.aliasTopTours=(req,res,next)=>{
+  console.log("In the top middle ware");
+req.query.limit='5';
+req.query.sort="-ratingsAverage,price";
+req.query.feilds='name,price,ratingsAverage,difficulty,description';
+next();
+}
+
+
+
 exports.getAllTours = async (req, res) => {
   try {
     //  let allTours = await Tour.find({difficulty:'easy'});
@@ -54,6 +66,20 @@ exports.getAllTours = async (req, res) => {
    }else{
     query= query.select('-__v')
    }
+
+  //  Paginations
+
+  const limit= req.query.limit*1 || 5;
+  const page= req.query.page*1 || 1;
+  const skip= (page-1)*limit;
+  query=query.skip(skip).limit(limit);
+
+  if(req.query.page){
+    let numRecords= await Tour.countDocuments();
+    if(skip>numRecords){
+      throw new Error('This page data is not exsist')
+    }
+  }
 
     let allTours = await query;
     res.status(200).json({

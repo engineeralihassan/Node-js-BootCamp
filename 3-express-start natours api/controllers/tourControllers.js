@@ -1,47 +1,24 @@
 const express = require('express');
 const fs = require('fs');
 const Tour = require('../modals/tourModal');
-
-let fileContent = fs.readFileSync(
-  `${__dirname}/../dev-data/data/tours-simple.json`,
-  'utf8'
-);
-let tours = JSON.parse(fileContent);
-
-// Middle wares
-
-// exports.checkBody= (req,res,next)=>{
-//     if(!req.body.name || !req.body.price){
-//       return  res.status(400).json({
-//             status:'fail',
-//             message:'we are missing somethings from prive or name of the tour'
-//         })
-//     }
-//     next();
-// };
+const ApiFeatures = require('../utils/apiFeatures');
 
 // ROUTE HANDLERS
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.feilds = 'name,price,ratingsAverage,difficulty,description';
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
-    //  let allTours = await Tour.find({difficulty:'easy'});
-    // let allTours = await Tour.find({difficulty:'easy'});  // filtering one way in mongoDb
-    // let allTours = await Tour.find().where('difficulty').equals('easy').where('duration').lte(5);
-   let queryObj= {...req.query};
-   excludedFields=['limit','page','feilds','sort'];
-   excludedFields.forEach(element =>  delete queryObj[element]);
-     // 1B) Advanced filtering
-     let queryStr = JSON.stringify(queryObj);
-     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-     console.log(JSON.parse(queryStr));
-    let query = Tour.find(JSON.parse(queryStr));
-   if(req.query.sort){
-    let sortBY= req.query.sort.split(',').join(' ');
-    console.log(sortBY);
-    query= query.sort(sortBY);
-   }else{
-    query= query.sort('-createdAt')
-   }
-    let allTours = await query;
+    const features = new ApiFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const allTours = await features.query;
     res.status(200).json({
       status: 'success',
       results: allTours.length,
@@ -79,7 +56,7 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.getTour = async(req, res) => {
+exports.getTour = async (req, res) => {
   try {
     // let tour = await Tour.findOne({_id:req.params.id});
     let tour = await Tour.findById(req.params.id);
@@ -87,7 +64,7 @@ exports.getTour = async(req, res) => {
       status: 'success',
       results: 1,
       data: {
-        tour
+        tour,
       },
     });
   } catch (error) {
@@ -99,10 +76,11 @@ exports.getTour = async(req, res) => {
   }
 };
 
-exports.updateTour = async(req, res) => {
+exports.updateTour = async (req, res) => {
   try {
-    let tour = await Tour.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators
-      :true
+    let tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
     });
     res.status(200).json({
       status: 'success',
@@ -115,12 +93,13 @@ exports.updateTour = async(req, res) => {
     res.status(500).json({
       status: 'fail',
       results: 0,
-      message: 'Your body data is not according to the settle validations in db',
+      message:
+        'Your body data is not according to the settle validations in db',
     });
   }
 };
 
-exports.deleteTour = async(req, res) => {
+exports.deleteTour = async (req, res) => {
   try {
     let tour = await Tour.findByIdAndDelete(req.params.id);
     res.status(200).json({
@@ -138,3 +117,73 @@ exports.deleteTour = async(req, res) => {
     });
   }
 };
+
+// Agregation piplines in mongoDB
+
+exports.getTourStats= async(req,res)=>{
+   try {
+const stats= await Tour.aggregate([
+{
+  $match : {ratingsAverage:{ $gte:4.5}}
+},{
+  $group : {
+    // _id:'$difficulty',
+    _id:{$toUpper: '$difficulty'},
+    sumn:{$sum:1},
+    aveRatings: {$avg : '$ratingsAverage'},
+    aveprice: {$avg : '$price'},
+    minPrice: {$min : '$price'},
+  }
+},
+{
+  $sort:{ aveprice:1}
+},
+{
+$match:{_id :{$ne:'EASY'}
+
+}
+}
+]);
+
+res.status(200).json({
+  status: 'success',
+  results: stats.length,
+  data: {
+    stats,
+  },
+});
+    
+   } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      results: 0,
+      message: 'Something went wrong',
+    });
+   }
+}
+
+
+exports.getMonthlyPlan= async(req,res)=>{
+  try {
+    let year= req.params.year*1;
+    console.log("Year is:",year);
+    let plan = await Tour.aggregate([
+      {
+        $unwind : '$startDates'
+      }
+    ])
+    res.status(200).json({
+      status: 'success',
+      results: plan.length,
+      data: {
+        plan,
+      },
+    }); 
+  } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      results: 0,
+      message: 'Something went wrong',
+    });
+  }
+}

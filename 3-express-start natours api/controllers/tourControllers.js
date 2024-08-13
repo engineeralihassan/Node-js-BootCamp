@@ -1,8 +1,11 @@
-const express= require('express');
-const fs= require('fs');
-const Tour=require('../modals/tourModal')
+const express = require('express');
+const fs = require('fs');
+const Tour = require('../modals/tourModal');
 
-let fileContent = fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf8');
+let fileContent = fs.readFileSync(
+  `${__dirname}/../dev-data/data/tours-simple.json`,
+  'utf8'
+);
 let tours = JSON.parse(fileContent);
 
 // Middle wares
@@ -18,103 +21,102 @@ let tours = JSON.parse(fileContent);
 // };
 
 // ROUTE HANDLERS
-exports.getAllTours = (req, res) => {
-    console.log('Fetching all tours');
+exports.getAllTours = async (req, res) => {
+  try {
+    let allTours = await Tour.find();
     res.status(200).json({
       status: 'success',
-      results: tours.length,
-      isFromMiddleware:req.isFromMiddleware,
+      results: allTours.length,
       data: {
-        tours,
+        tours: allTours,
       },
     });
-  };
-  
-  exports.createTour = async  (req, res) => {
-    console.log("We are in the create tour function");
-   try {
-    console.log("We are in try block");
-   const  newTour= await  Tour.create(req.body);
-    console.log("We are in try block1");
-    res.status(200).json({
-      status:'success',
-      data:{
-        tour:newTour
-      }
-    })
-   } catch (error) {
-    console.log("We are in the catch block");
-    res.status(400).json({
-      status:'fail',
-      message:'Invalid request please check your passed data'
-    })
-   }
-  };
-  
-  exports.getTour = (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const tour = tours.find(el => el.id === id);
-  
-    if (!tour) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No record found with this ID',
-      });
-    }
+  } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      results: 0,
+      message: 'Something went wrong while feching data please try again',
+    });
+  }
+};
+
+exports.createTour = async (req, res) => {
+  console.log('We are in the create tour function');
+  try {
+    console.log('We are in try block');
+    const newTour = await Tour.create(req.body);
+    console.log('We are in try block1');
     res.status(200).json({
       status: 'success',
+      data: {
+        tour: newTour,
+      },
+    });
+  } catch (error) {
+    console.log('We are in the catch block');
+    res.status(400).json({
+      status: 'fail',
+      message: 'Invalid request please check your passed data',
+    });
+  }
+};
+
+exports.getTour = async(req, res) => {
+  try {
+    // let tour = await Tour.findOne({_id:req.params.id});
+    let tour = await Tour.findById(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      results: 1,
+      data: {
+        tour
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      results: 0,
+      message: 'We could not found any thing against thid ID',
+    });
+  }
+};
+
+exports.updateTour = async(req, res) => {
+  try {
+    let tour = await Tour.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators
+      :true
+    });
+    res.status(200).json({
+      status: 'success',
+      results: 1,
       data: {
         tour,
       },
     });
-  };
-  
-  exports.updateTour = (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const tourIndex = tours.findIndex(el => el.id === id);
-  
-    if (tourIndex === -1) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No record found with this ID',
-      });
-    }
-  
-    // Here you would update the tour in the array and write to file
-    // For simplicity, I'm not implementing the update logic
-  
+  } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      results: 0,
+      message: 'Your body data is not according to the settle validations in db',
+    });
+  }
+};
+
+exports.deleteTour = async(req, res) => {
+  try {
+    let tour = await Tour.findByIdAndDelete(req.params.id);
     res.status(200).json({
       status: 'success',
+      results: 1,
       data: {
-        record: '< updated record is here>',
+        tour,
       },
     });
-  };
-  
-  exports.deleteTour = (req, res) => {
-      console.log("Delete record start");
-    const id = parseInt(req.params.id, 10);
-    const tourIndex = tours.findIndex(el => el.id === id);
-  
-    if (tourIndex === -1) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No record found with this ID',
-      });
-    }
-  
-    tours.splice(tourIndex, 1); // Remove the tour from the array
-  
-    fs.writeFile('./dev-data/data/tours-simple.json', JSON.stringify(tours, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({
-          status: 'fail',
-          message: 'Error writing to file',
-        });
-      }
-      res.status(204).json({
-        status: 'success',
-        data: null,
-      });
+  } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      results: 0,
+      message: 'we did not fund any record againt this id',
     });
-  };
+  }
+};

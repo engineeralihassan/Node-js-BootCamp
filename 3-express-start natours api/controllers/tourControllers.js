@@ -1,20 +1,21 @@
 const express= require('express');
 const fs= require('fs');
+const Tour=require('../modals/tourModal')
 
 let fileContent = fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf8');
 let tours = JSON.parse(fileContent);
 
 // Middle wares
 
-exports.checkBody= (req,res,next)=>{
-    if(!req.body.name || !req.body.price){
-      return  res.status(400).json({
-            status:'fail',
-            message:'we are missing somethings from prive or name of the tour'
-        })
-    }
-    next();
-};
+// exports.checkBody= (req,res,next)=>{
+//     if(!req.body.name || !req.body.price){
+//       return  res.status(400).json({
+//             status:'fail',
+//             message:'we are missing somethings from prive or name of the tour'
+//         })
+//     }
+//     next();
+// };
 
 // ROUTE HANDLERS
 exports.getAllTours = (req, res) => {
@@ -29,26 +30,25 @@ exports.getAllTours = (req, res) => {
     });
   };
   
-  exports.createTour = (req, res) => {
-    const newId = tours[tours.length - 1].id + 1;
-    const newTour = Object.assign({ id: newId }, req.body);
-  
-    tours.push(newTour); // Add new tour to the array
-  
-    fs.writeFile('./dev-data/data/tours-simple.json', JSON.stringify(tours, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({
-          status: 'fail',
-          message: 'Error writing to file',
-        });
+  exports.createTour = async  (req, res) => {
+    console.log("We are in the create tour function");
+   try {
+    console.log("We are in try block");
+   const  newTour= await  Tour.create(req.body);
+    console.log("We are in try block1");
+    res.status(200).json({
+      status:'success',
+      data:{
+        tour:newTour
       }
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
-        },
-      });
-    });
+    })
+   } catch (error) {
+    console.log("We are in the catch block");
+    res.status(400).json({
+      status:'fail',
+      message:'Invalid request please check your passed data'
+    })
+   }
   };
   
   exports.getTour = (req, res) => {

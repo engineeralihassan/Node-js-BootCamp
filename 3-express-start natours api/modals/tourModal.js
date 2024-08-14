@@ -5,7 +5,8 @@ const tourSchema= new mongoose.Schema({
         type:String,
         required:[true,'A tour must have a name'],
         unique:true,
-        trim:true
+        trim:true,
+        minlength:[10,'A tour must have more then 10 charecters']
     },
     duration:{
         type:Number,
@@ -17,11 +18,17 @@ const tourSchema= new mongoose.Schema({
     },
     difficulty:{
         type:String,
-        required:[true,'A Tour must have a difficulty']
+        required:[true,'A Tour must have a difficulty'],
+        enum:{
+            values:['easy','medium','difficult'],
+            message:'Difficulty is one of them [easy,medium,difficult'
+        }
     },
     ratingsAverage:{
         type:Number,
-      default:4.5
+      default:4.5,
+      min:[1,'Rating must be atleast 1'],
+      max:[5,'Rating must be maximum 5']
     },
     ratingsQuantity:{
         type:Number,
@@ -65,10 +72,13 @@ const tourSchema= new mongoose.Schema({
 },{
     toJSON:{virtuals:true},
     toObject:{virtuals:true}
-})
+});
 tourSchema.virtual('durationWeeks').get(function(){
     return this.duration/7;
-})
+});
+// Agregate middle ware 
+
+
 const Tour= mongoose.model('Tour',tourSchema);
 
 module.exports=Tour;

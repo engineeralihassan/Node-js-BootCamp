@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const Tour = require('../modals/tourModal');
 const ApiFeatures = require('../utils/apiFeatures');
+const CatchAsync= require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 // ROUTE HANDLERS
 exports.aliasTopTours = (req, res, next) => {
@@ -11,7 +13,12 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = async (req, res) => {
+// CatchAsync Function in Node
+
+
+
+
+exports.getAllTours =  async (req, res) => {
   try {
     const features = new ApiFeatures(Tour.find(), req.query)
       .filter()
@@ -35,31 +42,24 @@ exports.getAllTours = async (req, res) => {
   }
 };
 
-exports.createTour = async (req, res) => {
-  console.log('We are in the create tour function');
-  try {
-    console.log('We are in try block');
+exports.createTour = CatchAsync( async (req, res) => {
     const newTour = await Tour.create(req.body);
-    console.log('We are in try block1');
     res.status(200).json({
       status: 'success',
       data: {
         tour: newTour,
       },
     });
-  } catch (error) {
-    console.log('We are in the catch block');
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid request please check your passed data',
-    });
-  }
-};
+  
+});
 
-exports.getTour = async (req, res) => {
-  try {
-    // let tour = await Tour.findOne({_id:req.params.id});
+exports.getTour = CatchAsync( async (req, res) => {
     let tour = await Tour.findById(req.params.id);
+    if(!tour){
+      console.log("did not found tour");
+      return next( new AppError('Did not found any record on this request',404));
+    }
+    console.log("")
     res.status(200).json({
       status: 'success',
       results: 1,
@@ -67,14 +67,7 @@ exports.getTour = async (req, res) => {
         tour,
       },
     });
-  } catch (error) {
-    res.status(404).json({
-      status: 'fail',
-      results: 0,
-      message: 'We could not found any thing against thid ID',
-    });
-  }
-};
+  }) ;
 
 exports.updateTour = async (req, res) => {
   try {

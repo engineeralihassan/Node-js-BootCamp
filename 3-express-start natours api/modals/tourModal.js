@@ -1,11 +1,13 @@
 const mongoose= require('mongoose');
+const slugify= require('slugify');
 
 const tourSchema= new mongoose.Schema({
     name:{
         type:String,
         required:[true,'A tour must have a name'],
         unique:true,
-        trim:true
+        trim:true,
+        minlength:[10,'A tour must have more then 10 charecters']
     },
     duration:{
         type:Number,
@@ -17,11 +19,17 @@ const tourSchema= new mongoose.Schema({
     },
     difficulty:{
         type:String,
-        required:[true,'A Tour must have a difficulty']
+        required:[true,'A Tour must have a difficulty'],
+        enum:{
+            values:['easy','medium','difficult'],
+            message:'Difficulty is one of them [easy,medium,difficult'
+        }
     },
     ratingsAverage:{
         type:Number,
-      default:4.5
+      default:4.5,
+      min:[1,'Rating must be atleast 1'],
+      max:[5,'Rating must be maximum 5']
     },
     ratingsQuantity:{
         type:Number,
@@ -49,6 +57,10 @@ const tourSchema= new mongoose.Schema({
         type:String,
      trim:true
     },
+    slug:{
+        type:String,
+          trim:true
+    },
     imageCover:{
         type:String,
         required:[true,'A tour must have an cover image']
@@ -59,10 +71,52 @@ const tourSchema= new mongoose.Schema({
         default:Date.now(),
         select:false
     },
-    startDates:[Date]
+    startDates:[Date],
+    secrateTour:{
+        type:Boolean,
+        default:false,
+    }
 
 
-})
+},{
+    toJSON:{virtuals:true},
+    toObject:{virtuals:true}
+});
+tourSchema.virtual('durationWeeks').get(function(){
+    return this.duration/7;
+});
+
+// Like Express there are also middle wares for the mongo dB
+// 1-Document middle ware runs befor the save or create
+tourSchema.pre('save',function(next){
+    this.slug= slugify(this.name,{lower:true});
+    console.log("The Slug is",this.slug);
+    next();
+});
+
+//  
+
+// // post middle ware
+// tourSchema.post('save',function(doc,next){
+//  console.log(doc);
+//     next();
+// });
+
+// QUERY MIDDLEWARES
+
+tourSchema.pre(/^find/,function(next){
+   this.find({secrateTour: {$ne:true}}) ;
+   next();
+});
+ tourSchema.post(/^find/,function(doc,next){
+  console.log("Post Hook for the Find Query is done") 
+    next();
+ });
+
+
+
+
+
 const Tour= mongoose.model('Tour',tourSchema);
 
 module.exports=Tour;

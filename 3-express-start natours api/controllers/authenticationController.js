@@ -2,6 +2,7 @@ const User= require('../modals/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const jwt = require('jsonwebtoken');
+const {promisify} = require('util');
 
 
 let createToken=(userId)=>{
@@ -43,5 +44,34 @@ console.log("user is",user);
         }
     })
     }
+
+});
+
+exports.protect= catchAsync(async(req,res,next)=>{
+ let token;
+    console.log("req.headers",req.headers);
+    if(req.headers.authorization && req.headers.authorization.srartsWith('Bearer')){
+         token = req.headers.authorization.split(' ')[1];
+    }
+    if(!token){
+        return next(new AppError('UnAuthorized user please login first',401))
+    }
+
+    let decoded= promisify(jwt.verify)(token,process.env.JWT_SECRATE);
+    console.log("Decoded Token is : ",decoded);
+
+    let freshUser= await User.findById(decoded.id);
+
+    if(!freshUser){
+        return next(new AppError('Login Token is not belongs to this user',401));
+    }
+
+   if(freshUser.passwordChangeAfter(decoded.iat)){
+    return next(new AppError('User recently chnaged password please login again',401))
+   }
+req.user=freshUser;
+// give access to the Route 
+next();
+
 
 });

@@ -40,7 +40,8 @@ confirmPasssword:{
               return el=== this.passsword;
         }
     }
-}
+},
+passwordChangedAt:Date
 
 
 });
@@ -64,6 +65,16 @@ userScehma.pre('save', async function(next){
 userScehma.methods.correctPassword=  async function(candidatePass,userPass){
     console.log("passUser",userPass,"pass",candidatePass);
     return await bcrypt.compare(candidatePass,userPass);
+}
+
+userScehma.methods.passwordChangeAfter=  function (jwtTimeStamp) {
+    if(this.passwordChangedAt){
+     const changedTimeStamp= parseInt(this.passwordChangedAt.getTime()/1000,10);
+     console.log(changedTimeStamp,jwtTimeStamp);
+     return jwtTimeStamp<changedTimeStamp;
+    }
+
+    return false;
 }
 
 const User= mongoose.model('User',userScehma);

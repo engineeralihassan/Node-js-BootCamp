@@ -1,6 +1,6 @@
 const express= require('express');
 const fs= require('fs');
-const { signUp,login,forgetPassword,resetPassword } = require('../controllers/authenticationController');
+const { signUp,login,forgotPassword,resetPassword } = require('../controllers/authenticationController');
 
 let fileContent = fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf8');
 let tours = JSON.parse(fileContent);
@@ -48,7 +48,7 @@ const router= express.Router();
 router.post('/signup',signUp);
 router.post('/login',login);
 router.post('/rest-password/:token',resetPassword);
-router.post('/forget-password',forgetPassword);
+router.post('/forget-password',forgotPassword);
 
   router.route('/')
   .get(getAllUsers)

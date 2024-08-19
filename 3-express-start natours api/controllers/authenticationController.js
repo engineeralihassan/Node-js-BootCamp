@@ -47,31 +47,60 @@ console.log("user is",user);
 
 });
 
-exports.protect= catchAsync(async(req,res,next)=>{
- let token;
-    console.log("req.headers",req.headers);
-    if(req.headers.authorization && req.headers.authorization.srartsWith('Bearer')){
-         token = req.headers.authorization.split(' ')[1];
+exports.protect = catchAsync(async (req, res, next) => {
+    // 1) Getting token and check of it's there
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      token = req.headers.authorization.split(' ')[1];
     }
-    if(!token){
-        return next(new AppError('UnAuthorized user please login first',401))
+  
+    if (!token) {
+      return next(
+        new AppError('You are not logged in! Please log in to get access.', 401)
+      );
     }
-
-    let decoded= promisify(jwt.verify)(token,process.env.JWT_SECRATE);
-    console.log("Decoded Token is : ",decoded);
-
-    let freshUser= await User.findById(decoded.id);
-
-    if(!freshUser){
-        return next(new AppError('Login Token is not belongs to this user',401));
+  
+    // 2) Verification token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRATE);
+  
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next(
+        new AppError(
+          'The user belonging to this token does no longer exist.',
+          401
+        )
+      );
     }
+  
+    // 4) Check if user changed password after the token was issued
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next(
+        new AppError('User recently changed password! Please log in again.', 401)
+      );
+    }
+  
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.user = currentUser;
+    next();
+  });
 
-   if(freshUser.passwordChangeAfter(decoded.iat)){
-    return next(new AppError('User recently chnaged password please login again',401))
-   }
-req.user=freshUser;
-// give access to the Route 
-next();
+  // check Permissions
 
+  exports.restrictTo=(...roles)=>{
+    return (req,res,next)=>{
+      if(!roles.includes(req.user.role)){
+        return next(new AppError("User have no permissions to delete route",403));
+      }
+      next();
+    }
+  }
 
-});
+  exports.forgetPassword=catchAsync(async (req, res, next) => {
+    
+  });
+  exports.resetPassword=catchAsync(async (req, res, next) => {});

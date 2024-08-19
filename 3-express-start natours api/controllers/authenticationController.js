@@ -101,6 +101,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   exports.forgetPassword=catchAsync(async (req, res, next) => {
-    
+      // 1) Get user based on POSTed email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with email address.', 404));
+  }
+
+  // 2) Generate the random reset token
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
   });
   exports.resetPassword=catchAsync(async (req, res, next) => {});

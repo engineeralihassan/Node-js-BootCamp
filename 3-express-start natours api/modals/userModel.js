@@ -1,6 +1,7 @@
 const mongoose= require('mongoose');
 const validator=require('validator');
 const { validate } = require('./tourModal');
+const crypto = require('crypto');
 const bcrypt= require('bcrypt');
 const userScehma=mongoose.Schema({
 name:{
@@ -46,7 +47,9 @@ confirmPasssword:{
         }
     }
 },
-passwordChangedAt:Date
+passwordChangedAt:Date,
+passwordResetToken: String,
+passwordResetExpires: Date,
 
 
 });
@@ -84,7 +87,7 @@ userScehma.methods.changedPasswordAfter=  function (jwtTimeStamp) {
 
 // password reset token
 
-userSchema.methods.createPasswordResetToken = function() {
+userScehma.methods.createPasswordResetToken = function() {
     const resetToken = crypto.randomBytes(32).toString('hex');
   
     this.passwordResetToken = crypto

@@ -1,6 +1,7 @@
 const mongoose= require('mongoose');
 const validator=require('validator');
 const { validate } = require('./tourModal');
+const crypto = require('crypto');
 const bcrypt= require('bcrypt');
 const userScehma=mongoose.Schema({
 name:{
@@ -29,6 +30,11 @@ passsword:{
     required:[true,'Password must be requored feild'],
     select:false
 },
+role:{
+    type:String,
+    enum:['leade-guide','guide','admin','user']
+
+},
 confirmPasssword:{
     type:String,
     maxlength:8,
@@ -41,7 +47,9 @@ confirmPasssword:{
         }
     }
 },
-passwordChangedAt:Date
+passwordChangedAt:Date,
+passwordResetToken: String,
+passwordResetExpires: Date,
 
 
 });
@@ -67,7 +75,7 @@ userScehma.methods.correctPassword=  async function(candidatePass,userPass){
     return await bcrypt.compare(candidatePass,userPass);
 }
 
-userScehma.methods.passwordChangeAfter=  function (jwtTimeStamp) {
+userScehma.methods.changedPasswordAfter=  function (jwtTimeStamp) {
     if(this.passwordChangedAt){
      const changedTimeStamp= parseInt(this.passwordChangedAt.getTime()/1000,10);
      console.log(changedTimeStamp,jwtTimeStamp);
@@ -76,6 +84,23 @@ userScehma.methods.passwordChangeAfter=  function (jwtTimeStamp) {
 
     return false;
 }
+
+// password reset token
+
+userScehma.methods.createPasswordResetToken = function() {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+  
+    this.passwordResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+  
+    console.log({ resetToken }, this.passwordResetToken);
+  
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  
+    return resetToken;
+  };
 
 const User= mongoose.model('User',userScehma);
 module.exports=User;

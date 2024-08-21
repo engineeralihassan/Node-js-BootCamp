@@ -1,62 +1,33 @@
-const express= require('express');
-const fs= require('fs');
-const { signUp,login,forgotPassword,resetPassword } = require('../controllers/authenticationController');
+const express = require('express');
+const userController = require('./../controllers/userController');
+const authController = require('./../controllers/authController');
 
-let fileContent = fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf8');
-let tours = JSON.parse(fileContent);
+const router = express.Router();
 
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
 
-const getAllUsers=(req, res) => {
-    res.status(500).json({
-        status: 'fail',
-        message: 'Route does not implemented yet',
-      });
-}
+router.post('/forgotPassword', authController.forgotPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
 
-const createUser=(req, res) => {
-    res.status(500).json({
-        status: 'fail',
-        message: 'Route does not implemented yet',
-      });
-}
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword
+);
 
-const getUser=(req, res) => {
-    res.status(500).json({
-        status: 'fail',
-        message: 'Route does not implemented yet',
-      });
-}
+router.patch('/updateMe', authController.protect, userController.updateMe);
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
-const updateUser=(req, res) => {
-    res.status(500).json({
-        status: 'fail',
-        message: 'Route does not implemented yet',
-      });
-}
+router
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 
-const deleteUser=(req, res) => {
-    res.status(500).json({
-        status: 'fail',
-        message: 'Route does not implemented yet',
-      });
-}
+router
+  .route('/:id')
+  .get(userController.getUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
-
-
-const router= express.Router();
-
-router.post('/signup',signUp);
-router.post('/login',login);
-router.post('/rest-password/:token',resetPassword);
-router.post('/forget-password',forgotPassword);
-
-  router.route('/')
-  .get(getAllUsers)
-  .post(createUser);
-
-router.route('/:id')
-  .get(getUser)
-  .patch(updateUser)
-  .delete(deleteUser);
-
-  module.exports= router;
+module.exports = router;

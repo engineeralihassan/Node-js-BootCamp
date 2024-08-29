@@ -12,9 +12,9 @@ router
   .get(reviewController.getAllReviews)
   .post(authController.protect,
     authController.restrictTo('user'),
-    // reviewController.setTourUserIds,
+    reviewController.setTourUserIds,
     reviewController.createReview
-  );
+  ).patch(reviewController.updateReview);
 
   router.route("/:id").delete(reviewController.deleteReview)
 

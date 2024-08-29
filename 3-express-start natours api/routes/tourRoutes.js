@@ -1,11 +1,12 @@
 const express = require('express');
 const tourController = require('../controllers/tourControllers');
 const authController = require('../controllers/authController');
-
+const reviewController=require('../controllers/reviewController')
+const reviewRouter= require("../routes/reviewRoutes")
 const router = express.Router();
 
 // router.param('id', tourController.checkID);
-
+ router.use('/:tourId/reviews',reviewRouter)
 router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours);
@@ -27,5 +28,11 @@ router
     authController.restrictTo('admin', 'lead-guide'),
     tourController.deleteTour
   );
+
+
+  // We used the Merge Params to set this review routes in the review routes not in tour routes 
+  // router.route('/:tourId/reviews').post(authController.protect,authController.restrictTo('user'),reviewController.createReview )
+
+
 
 module.exports = router;

@@ -75,8 +75,8 @@ exports.deleteOne = Model =>
               .sort()
               .limitFields()
               .paginate();
-            // const doc = await features.query.explain();
-            const doc = await features.query;
+            const doc = await features.query.explain();
+            // const doc = await features.query;
         
             // SEND RESPONSE
             res.status(200).json({

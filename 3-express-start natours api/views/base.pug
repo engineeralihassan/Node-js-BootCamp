@@ -1,66 +1,26 @@
-//- doctype html
-//- html
-//-  head
-//-    title Ali Hassan First Puf of ever 
-//-    link(rel="stylesheet", href="css/style.css")
-//-    link(rel="shortcut icon", href="img/favicon.png", type="image/x-icon")
-
-//-  body 
-//-    h1 this is the first heading in the body 
-//-    p Standadrd HTML is also working as pug if you want to write its working
-//-    h3 Know we are going to bind variables into the pug files there 
-//-    h2= tour 
-//-    h3= guide
-//-    h2 we are going using the JAVASCRIPT file in the pug file
-//-    h3= guide.toUpperCase()
-//-    h4=12+234
-//-    - const x=4;
-//-    h2= x*3
-//-    h3 Kasa Laga Jani aya maza
-//-    h2 interpolations in the pug file like ES6 in js 
-//-    h3 Helllo ali wa are x is = #{x}
-
-//- // __________________________  We are converting the Real html file into the pug __________________
-
 doctype html
 html
   head
+    block head
       meta(charset='UTF-8')
       meta(name='viewport' content='width=device-width, initial-scale=1.0')
       link(rel='stylesheet' href='/css/style.css')
       link(rel='shortcut icon' type='image/png' href='/img/favicon.png')
       link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
-      title Natours | Exciting tours for adventurous peoples
+      title Natours | #{title}
   
   body
     // HEADER
-    header.header
-      nav.nav.nav--tours
-        a.nav__el(href='#') All tours
-      .header__logo
-         img(src='/img/logo-white.png' alt='Natours logo')
-      nav.nav.nav--user
-         a.nav__el(href='#') My Bookings
-         a.nav__el(href='#')
-             +img.nav__user-image(src="img/users/user-2.jpg", alt="User photo")
-             span Ali 
+    include _header
         
-         button.nav__el.nav__el--cta Sign Up    
-
-
-        
-    //- // CONTENT
-    //- block content
-    //-   h1 This is a placeholder heading
+    // CONTENT
+    block content
+      h1 This is a placeholder heading
       
-    //- // FOOTER
-    //- include _footer
+    // FOOTER
+    include _footer
     
-    //- //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js')
-    //- //- script(src='/js/mapbox.js')
-    //- //- script(src='/js/login.js')
-    //- script(src='/js/bundle.js')
-
-
-
-
+    //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js')
+    //- script(src='/js/mapbox.js')
+    //- script(src='/js/login.js')
+    script(src='/js/bundle.js')

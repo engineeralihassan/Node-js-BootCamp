@@ -1,5 +1,5 @@
 const Tour = require('../modals/tourModal');
-const User = require('../modals/userModal');
+const User = require('../modals/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 

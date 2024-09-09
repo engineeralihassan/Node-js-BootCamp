@@ -71,7 +71,10 @@ app.use((req, res, next) => {
 });
 
 // 3) ROUTES
-
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "script-src 'self' https://api.mapbox.com;");
+  next();
+});
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
